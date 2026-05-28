@@ -633,7 +633,7 @@ function mostrarSecretEntrance() {
   document.getElementById('seSubtitle').classList.remove('visible');
 
   const msg = document.getElementById('seWelcome');
-  const lines = ['Bienvenido... 🤫', 'Shhh, no le cuentes', 'este secreto a nadie.'];
+  const lines = ['Bienvenid@... ', 'Shhh, no le cuentes', 'este secreto a nadie.'];
 
   typeWriter(msg, lines, () => {
     setTimeout(() => {
@@ -740,21 +740,24 @@ function renderPagina(lado, hoja) {
 }
 
 async function subirFoto(file, lado) {
-  const areaId = 'photoArea'+lado;
-  const area = document.getElementById(areaId);
-  // Mostrar loading
+  const area = document.getElementById('photoArea'+lado);
   const loading = document.createElement('div');
-  loading.className='uploading-overlay'; loading.textContent='Subiendo foto...';
+  loading.className='uploading-overlay';
+  loading.textContent='Subiendo foto...';
   area.appendChild(loading);
-
-  const ext=file.name.split('.').pop();
-  const path=`${currentUser.id}/${Date.now()}.${ext}`;
-  const { data, error } = await sb.storage.from('album-fotos').upload(path, file);
-  area.removeChild(loading);
-
-  if(error){ console.error(error); return null; }
-  const { data: urlData } = sb.storage.from('album-fotos').getPublicUrl(path);
-  return urlData.publicUrl;
+  try {
+    const ext = file.name.split('.').pop();
+    const path = `${currentUser.id}/${Date.now()}.${ext}`;
+    const { data, error } = await sb.storage.from('album-fotos').upload(path, file);
+    if(area.contains(loading)) area.removeChild(loading);
+    if(error){ alert('Error al subir: ' + error.message); return null; }
+    const { data: urlData } = sb.storage.from('album-fotos').getPublicUrl(path);
+    return urlData.publicUrl;
+  } catch(e) {
+    if(area.contains(loading)) area.removeChild(loading);
+    alert('Excepción: ' + e.message);
+    return null;
+  }
 }
 
 // ======= EVENT LISTENERS ÁLBUM =======
