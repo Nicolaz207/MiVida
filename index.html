@@ -656,10 +656,11 @@ function ocultarSecretEntrance() {
 document.getElementById('googleBtn').addEventListener('click', async () => {
   document.getElementById('googleBtn').classList.remove('show');
   document.getElementById('seLoading').classList.add('show');
-  await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
-  });
+ await sb.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: 'https://nicolaz207.github.io/MiVida/'
+  }
 });
 
 // ======= ALBUM =======
