@@ -942,18 +942,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
 });
-  // Botón Empecemos — siempre funciona
-  const btn = document.getElementById('btnEmpezar');
-  btn.addEventListener('click', () => {
-    btn.disabled = true;
-    document.getElementById('intro').classList.add('intro-zoom-out');
-    document.getElementById('intro').addEventListener('animationend', () => {
-      document.getElementById('intro').style.display = 'none';
-      document.getElementById('main').classList.add('main-visible');
-    }, {once: true});
-  });
-});
-
 </script>
 </body>
 </html>
