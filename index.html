@@ -780,15 +780,17 @@ async function subirFoto(file, lado) {
 
 // ======= EVENT LISTENERS ÁLBUM =======
 document.getElementById('albumBack').addEventListener('click', async () => {
-  await guardarPaginaActual();
+  try { await guardarPaginaActual(); } catch(e) { console.error(e); }
   document.getElementById('album').classList.remove('visible');
 });
 
 document.getElementById('albumLogout').addEventListener('click', async () => {
-  await guardarPaginaActual();
-  await sb.auth.signOut();
+  try { await guardarPaginaActual(); } catch(e) { console.error(e); }
   document.getElementById('album').classList.remove('visible');
-  currentUser=null; hojas=[]; spreadActual=0;
+  currentUser = null;
+  hojas = [];
+  spreadActual = 0;
+  try { await sb.auth.signOut(); } catch(e) { console.error(e); }
 });
 
 document.getElementById('albumAdd').addEventListener('click', async () => {
