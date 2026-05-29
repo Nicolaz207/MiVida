@@ -566,6 +566,7 @@ let spreadActual = 0;
 // ======= CHISPAS INTRO =======
 function crearChispas() {
   const cont = document.getElementById('sparks');
+  cont.innerHTML = '';
   const cols = ['#FF6B1A','#FFAB2E','#FF3D2E','#FFF3DC','#C94A1E'];
   for(let i=0;i<30;i++){
     const c=document.createElement('div'); c.classList.add('spark');
@@ -578,6 +579,7 @@ function crearChispas() {
 // ======= ESTRELLAS ZONA SECRETA =======
 function crearEstrellas() {
   const cont = document.getElementById('seStars');
+  cont.innerHTML = '';
   for(let i=0;i<60;i++){
     const s=document.createElement('div'); s.classList.add('se-star');
     const size=1+Math.random()*3;
@@ -876,26 +878,70 @@ sb.auth.onAuthStateChange(async (event, session) => {
     spreadActual = 0;
   }
 });
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+
   crearChispas();
 
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
-      document.querySelector(link.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});
+      document
+        .querySelector(link.getAttribute('href'))
+        ?.scrollIntoView({ behavior:'smooth' });
     });
   });
 
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
+      if(e.isIntersecting){
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
     });
-  }, {threshold:.15});
+  }, { threshold:.15 });
+
   document.querySelectorAll('.project-card,.stat-card').forEach((el,i) => {
-    el.style.cssText += `opacity:0;transform:translateY(30px);transition:opacity .5s ${i*.1}s ease,transform .5s ${i*.1}s ease;`;
+    el.style.cssText += `
+      opacity:0;
+      transform:translateY(30px);
+      transition:opacity .5s ${i*.1}s ease,
+                 transform .5s ${i*.1}s ease;
+    `;
     obs.observe(el);
   });
 
+  const btn = document.getElementById('btnEmpezar');
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+
+    document.getElementById('intro')
+      .classList.add('intro-zoom-out');
+
+    document.getElementById('intro')
+      .addEventListener('animationend', () => {
+
+        document.getElementById('intro').style.display = 'none';
+
+        document.getElementById('main')
+          .classList.add('main-visible');
+
+      }, { once:true });
+  });
+
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+
+    if(session){
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('main').classList.add('main-visible');
+      currentUser = session.user;
+    }
+  } catch(err){
+    console.error('Error sesión:', err);
+  }
+
+});
   // Botón Empecemos — siempre funciona
   const btn = document.getElementById('btnEmpezar');
   btn.addEventListener('click', () => {
@@ -906,40 +952,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('main').classList.add('main-visible');
     }, {once: true});
   });
-});
-  // Revelar cards
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
-    });
-  }, {threshold:.15});
-  document.querySelectorAll('.project-card,.stat-card').forEach((el,i) => {
-    el.style.cssText += `opacity:0;transform:translateY(30px);transition:opacity .5s ${i*.1}s ease,transform .5s ${i*.1}s ease;`;
-    obs.observe(el);
-  });
-
-  // Botón Empecemos — se agrega PRIMERO siempre
-  const btn = document.getElementById('btnEmpezar');
-  btn.addEventListener('click', () => {
-    btn.disabled = true;
-    document.getElementById('intro').classList.add('intro-zoom-out');
-    document.getElementById('intro').addEventListener('animationend', () => {
-      document.getElementById('intro').style.display = 'none';
-      document.getElementById('main').classList.add('main-visible');
-    }, {once: true});
-  });
-
-  // Luego verificar sesión
-  try {
-    const { data:{ session } } = await sb.auth.getSession();
-    if(session){
-      document.getElementById('intro').style.display = 'none';
-      document.getElementById('main').classList.add('main-visible');
-      currentUser = session.user;
-    }
-  } catch(e) {
-    console.error('Error sesión:', e);
-  }
 });
 
 </script>
