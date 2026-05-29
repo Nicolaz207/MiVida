@@ -910,35 +910,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-  // Revelar cards
-  const obs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';} });
-  },{threshold:.15});
-  document.querySelectorAll('.project-card,.stat-card').forEach((el,i)=>{
-    el.style.cssText+=`opacity:0;transform:translateY(30px);transition:opacity .5s ${i*.1}s ease,transform .5s ${i*.1}s ease;`;
-    obs.observe(el);
-  });
-
-  // Verificar sesión existente
-  const { data:{ session } } = await sb.auth.getSession();
-  if(session){
-    // Ya estaba logueado - saltar intro y mostrar main
-    document.getElementById('intro').style.display='none';
-    document.getElementById('main').classList.add('main-visible');
-    currentUser=session.user;
-  } else {
-    // Flujo normal con intro
-    const btn=document.getElementById('btnEmpezar');
-    btn.addEventListener('click',()=>{
-      btn.disabled=true;
-      document.getElementById('intro').classList.add('intro-zoom-out');
-      document.getElementById('intro').addEventListener('animationend',()=>{
-        document.getElementById('intro').style.display='none';
-        document.getElementById('main').classList.add('main-visible');
-      },{once:true});
-    });
-  }
-});
 </script>
 </body>
 </html>
