@@ -864,7 +864,6 @@ sb.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-// ======= INIT =======
 document.addEventListener('DOMContentLoaded', async () => {
   crearChispas();
 
@@ -875,6 +874,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.querySelector(link.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});
     });
   });
+
+  // Revelar cards
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
+    });
+  }, {threshold:.15});
+  document.querySelectorAll('.project-card,.stat-card').forEach((el,i) => {
+    el.style.cssText += `opacity:0;transform:translateY(30px);transition:opacity .5s ${i*.1}s ease,transform .5s ${i*.1}s ease;`;
+    obs.observe(el);
+  });
+
+  // Botón Empecemos — se agrega PRIMERO siempre
+  const btn = document.getElementById('btnEmpezar');
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    document.getElementById('intro').classList.add('intro-zoom-out');
+    document.getElementById('intro').addEventListener('animationend', () => {
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('main').classList.add('main-visible');
+    }, {once: true});
+  });
+
+  // Luego verificar sesión
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if(session){
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('main').classList.add('main-visible');
+      currentUser = session.user;
+    }
+  } catch(e) {
+    console.error('Error sesión:', e);
+  }
+});
 
   // Revelar cards
   const obs=new IntersectionObserver(entries=>{
