@@ -694,20 +694,36 @@ async function cargarPaginas() {
 
 async function guardarPaginaActual() {
   if(!currentUser) return;
-  const li=spreadActual*2, ri=li+1;
+  const li = spreadActual*2, ri = li+1;
   const guardados = [];
-  if(hojas[li]){
-    hojas[li].titulo=document.getElementById('tituloLeft').value;
-    hojas[li].texto=document.getElementById('textLeft').innerText;
-    guardados.push({user_id:currentUser.id,page_index:li,titulo:hojas[li].titulo,texto:hojas[li].texto,foto_url:hojas[li].foto_url||''});
+
+  if(hojas[li] !== undefined){
+    hojas[li].titulo = document.getElementById('tituloLeft').value;
+    hojas[li].texto  = document.getElementById('textLeft').innerText;
+    guardados.push({
+      user_id: currentUser.id,
+      page_index: li,
+      titulo:   hojas[li].titulo   || '',
+      texto:    hojas[li].texto    || '',
+      foto_url: hojas[li].foto_url || ''
+    });
   }
-  if(hojas[ri]){
-    hojas[ri].titulo=document.getElementById('tituloRight').value;
-    hojas[ri].texto=document.getElementById('textRight').innerText;
-    guardados.push({user_id:currentUser.id,page_index:ri,titulo:hojas[ri].titulo,texto:hojas[ri].texto,foto_url:hojas[ri].foto_url||''});
+  if(hojas[ri] !== undefined){
+    hojas[ri].titulo = document.getElementById('tituloRight').value;
+    hojas[ri].texto  = document.getElementById('textRight').innerText;
+    guardados.push({
+      user_id: currentUser.id,
+      page_index: ri,
+      titulo:   hojas[ri].titulo   || '',
+      texto:    hojas[ri].texto    || '',
+      foto_url: hojas[ri].foto_url || ''
+    });
   }
-  if(guardados.length>0){
-    await sb.from('album_pages').upsert(guardados, {onConflict:'user_id,page_index'});
+
+  if(guardados.length > 0){
+    const { error } = await sb.from('album_pages')
+      .upsert(guardados, { onConflict: 'user_id,page_index' });
+    if(error) console.error('Error guardando:', error);
   }
 }
 
