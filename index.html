@@ -309,7 +309,7 @@
               <input type="file" accept="image/*" id="fileLeft" style="display:none"/>
               <div class="photo-placeholder" id="placeholderLeft"><span>📷</span><p>Toca para agregar foto</p></div>
               <img id="imgLeft" class="page-img" style="display:none" alt="foto"/>
-              <button class="photo-remove" id="removeLeft" style="display:none">✕</button>
+                  <span class="foto-fecha-badge" id="fechaLeft"></span>
             </div>
             <div class="page-text" contenteditable="true" id="textLeft" data-placeholder="Escribe un recuerdo..."></div>
             <div class="page-number page-number-left" id="numLeft">1</div>
@@ -323,7 +323,7 @@
               <input type="file" accept="image/*" id="fileRight" style="display:none"/>
               <div class="photo-placeholder" id="placeholderRight"><span>📷</span><p>Toca para agregar foto</p></div>
               <img id="imgRight" class="page-img" style="display:none" alt="foto"/>
-              <button class="photo-remove" id="removeRight" style="display:none">✕</button>
+            <span class="foto-fecha-badge" id="fechaRight"></span>
             </div>
             <div class="page-text" contenteditable="true" id="textRight" data-placeholder="Escribe un recuerdo..."></div>
             <div class="page-number page-number-right" id="numRight">2</div>
@@ -671,5 +671,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
+<div id="ctxMenu" class="ctx-menu">
+  <button id="ctxDelete">🗑️ Eliminar foto</button>
+</div>
 </body>
 </html>
