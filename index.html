@@ -451,11 +451,29 @@ function cerrarAlbum() {
 
 async function cargarPaginas() {
   try {
-    const { data } = await sb.from('album_pages').select('*').eq('user_id', currentUser.id).order('page_index');
-    if(data && data.length>=2){ hojas=data; }
-    else { hojas=[{page_index:0,titulo:'',texto:'',foto_url:''},{page_index:1,titulo:'',texto:'',foto_url:''}]; }
-    if(hojas.length%2!==0) hojas.push({page_index:hojas.length,titulo:'',texto:'',foto_url:''});
-  } catch(e){ hojas=[{page_index:0,titulo:'',texto:'',foto_url:''},{page_index:1,titulo:'',texto:'',foto_url:''}]; }
+    const { data, error } = await sb.from('album_pages')
+      .select('*').eq('user_id', currentUser.id).order('page_index');
+
+    if(data && data.length >= 2){
+      hojas = data;
+    } else {
+      // Primera vez — crear páginas en la BD
+      hojas = [
+        {user_id:currentUser.id, page_index:0, titulo:'', texto:'', foto_url:''},
+        {user_id:currentUser.id, page_index:1, titulo:'', texto:'', foto_url:''}
+      ];
+      await sb.from('album_pages').upsert(hojas, {onConflict:'user_id,page_index'});
+    }
+
+    if(hojas.length % 2 !== 0){
+      const nueva = {user_id:currentUser.id, page_index:hojas.length, titulo:'', texto:'', foto_url:''};
+      hojas.push(nueva);
+      await sb.from('album_pages').upsert([nueva], {onConflict:'user_id,page_index'});
+    }
+  } catch(e){
+    console.error('Error cargando páginas:', e);
+    hojas = [{page_index:0,titulo:'',texto:'',foto_url:''},{page_index:1,titulo:'',texto:'',foto_url:''}];
+  }
 }
 
 async function guardarPaginaActual() {
