@@ -169,6 +169,30 @@
     .book-btn:hover:not(:disabled) { background:rgba(255,255,255,.14); transform:scale(1.05); }
     .book-btn:disabled { opacity:.25; cursor:default; }
     .book-counter { color:rgba(255,255,255,.45); font-size:.88rem; min-width:64px; text-align:center; }
+ .foto-fecha-badge {
+  position:absolute; top:8px; right:8px;
+  background:rgba(0,0,0,0.6); color:#fff;
+  font-size:.65rem; padding:3px 8px;
+  border-radius:999px; font-family:'DM Sans',sans-serif;
+  pointer-events:none; z-index:3; display:none;
+  backdrop-filter:blur(4px);
+}
+.ctx-menu {
+  position:fixed; z-index:9999;
+  background:#fff; border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.25);
+  padding:.4rem; display:none; min-width:160px;
+}
+.ctx-menu.show { display:block; }
+.ctx-menu button {
+  display:block; width:100%; padding:.7rem 1.2rem;
+  border:none; background:none; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:.9rem;
+  color:#e74c3c; border-radius:10px; text-align:left;
+  transition:background .15s;
+}
+.ctx-menu button:hover { background:rgba(231,76,60,.1); }
+  
   </style>
 </head>
 <body>
@@ -483,12 +507,12 @@ async function guardarPaginaActual() {
   if(hojas[li]!==undefined){
     hojas[li].titulo=document.getElementById('tituloLeft').value;
     hojas[li].texto=document.getElementById('textLeft').innerText;
-    guardados.push({user_id:currentUser.id,page_index:li,titulo:hojas[li].titulo||'',texto:hojas[li].texto||'',foto_url:hojas[li].foto_url||''});
+    guardados.push({user_id:currentUser.id,page_index:li,titulo:hojas[li].titulo||'',texto:hojas[li].texto||'',foto_url:hojas[li].foto_url||'',foto_fecha: hojas[li].foto_fecha||''});
   }
   if(hojas[ri]!==undefined){
     hojas[ri].titulo=document.getElementById('tituloRight').value;
     hojas[ri].texto=document.getElementById('textRight').innerText;
-    guardados.push({user_id:currentUser.id,page_index:ri,titulo:hojas[ri].titulo||'',texto:hojas[ri].texto||'',foto_url:hojas[ri].foto_url||''});
+    guardados.push({user_id:currentUser.id,page_index:ri,titulo:hojas[ri].titulo||'',texto:hojas[ri].texto||'',foto_url:hojas[ri].foto_url||'',foto_fecha: hojas[ri].foto_fecha||''});
   }
   if(guardados.length>0){
     try { await sb.from('album_pages').upsert(guardados,{onConflict:'user_id,page_index'}); } catch(e){ console.error(e); }
@@ -512,10 +536,15 @@ function renderPagina(lado, hoja) {
         img=document.getElementById('img'+lado),
         txt=document.getElementById('text'+lado),
         tit=document.getElementById('titulo'+lado),
-        rem=document.getElementById('remove'+lado);
+        fecha=document.getElementById('fecha'+lado);
   tit.value=hoja.titulo||'';
-  if(hoja.foto_url){ img.src=hoja.foto_url; img.style.display='block'; ph.style.display='none'; rem.style.display='flex'; }
-  else { img.style.display='none'; ph.style.display='flex'; rem.style.display='none'; }
+  if(hoja.foto_url){
+    img.src=hoja.foto_url; img.style.display='block'; ph.style.display='none';
+    if(fecha){ fecha.textContent=hoja.foto_fecha||''; fecha.style.display=hoja.foto_fecha?'block':'none'; }
+  } else {
+    img.style.display='none'; ph.style.display='flex';
+    if(fecha) fecha.style.display='none';
+  }
   txt.innerText=hoja.texto||'';
 }
 
@@ -572,10 +601,89 @@ document.getElementById('btnPrev').addEventListener('click', async () => {
   setTimeout(()=>{ spreadActual--; renderSpread(); s.classList.remove('girando'); },280);
 });
 
+let ctxLado = null;
+let longPressTimer = null;
+const ctxMenu = document.getElementById('ctxMenu');
+
+function mostrarCtxMenu(x, y, lado) {
+  const idx = lado==='Left' ? spreadActual*2 : spreadActual*2+1;
+  if(!hojas[idx]?.foto_url) return;
+  ctxLado = lado;
+  ctxMenu.classList.add('show');
+  const winW=window.innerWidth, winH=window.innerHeight;
+  ctxMenu.style.left = Math.min(x, winW-170) + 'px';
+  ctxMenu.style.top  = Math.min(y, winH-70)  + 'px';
+}
+
+function ocultarCtxMenu() {
+  ctxMenu.classList.remove('show');
+  ctxLado = null;
+}
+
 ['Left','Right'].forEach(lado => {
+  // Click normal → abrir selector de foto
   document.getElementById('photoArea'+lado).addEventListener('click', () => {
     document.getElementById('file'+lado).click();
   });
+
+  // Click derecho → menú eliminar
+  document.getElementById('photoArea'+lado).addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    mostrarCtxMenu(e.clientX, e.clientY, lado);
+  });
+
+  // Long press móvil → menú eliminar
+  document.getElementById('photoArea'+lado).addEventListener('touchstart', (e) => {
+    longPressTimer = setTimeout(() => {
+      const t=e.touches[0];
+      mostrarCtxMenu(t.clientX, t.clientY, lado);
+    }, 600);
+  });
+  document.getElementById('photoArea'+lado).addEventListener('touchend',  () => clearTimeout(longPressTimer));
+  document.getElementById('photoArea'+lado).addEventListener('touchmove', () => clearTimeout(longPressTimer));
+
+  // Subir foto
+  document.getElementById('file'+lado).addEventListener('change', async function(){
+    const file=this.files[0]; if(!file) return;
+    const url=await subirFoto(file,lado);
+    if(url){
+      const idx=lado==='Left'?spreadActual*2:spreadActual*2+1;
+      const fecha=new Date().toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+      hojas[idx].foto_url=url;
+      hojas[idx].foto_fecha=fecha;
+      renderPagina(lado,hojas[idx]);
+      try {
+        await sb.from('album_pages').upsert({
+          user_id:currentUser.id, page_index:idx,
+          titulo:hojas[idx].titulo||'', texto:hojas[idx].texto||'',
+          foto_url:url, foto_fecha:fecha
+        },{onConflict:'user_id,page_index'});
+      } catch(e){ console.error(e); }
+    }
+    this.value='';
+  });
+});
+
+// Eliminar foto desde menú
+document.getElementById('ctxDelete').addEventListener('click', async () => {
+  if(!ctxLado) return;
+  const idx=ctxLado==='Left'?spreadActual*2:spreadActual*2+1;
+  hojas[idx].foto_url=''; hojas[idx].foto_fecha='';
+  renderPagina(ctxLado,hojas[idx]);
+  ocultarCtxMenu();
+  try {
+    await sb.from('album_pages').upsert({
+      user_id:currentUser.id, page_index:idx,
+      titulo:hojas[idx].titulo||'', texto:hojas[idx].texto||'',
+      foto_url:'', foto_fecha:''
+    },{onConflict:'user_id,page_index'});
+  } catch(e){ console.error(e); }
+});
+
+// Cerrar menú al hacer clic fuera
+document.addEventListener('click', (e) => {
+  if(!ctxMenu.contains(e.target)) ocultarCtxMenu();
+});
  document.getElementById('file'+lado).addEventListener('change', async function(){
   const file=this.files[0]; if(!file) return;
   const url=await subirFoto(file,lado);
