@@ -512,3 +512,27 @@ footer span { color: var(--orange); }
   .section { padding: 5rem 1.5rem; }
   .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
 }
+
+.foto-fecha-badge {
+  position:absolute; top:8px; right:8px;
+  background:rgba(0,0,0,0.6); color:#fff;
+  font-size:.65rem; padding:3px 8px;
+  border-radius:999px; font-family:'DM Sans',sans-serif;
+  pointer-events:none; z-index:3; display:none;
+  backdrop-filter:blur(4px);
+}
+.ctx-menu {
+  position:fixed; z-index:9999;
+  background:#fff; border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.25);
+  padding:.4rem; display:none; min-width:160px;
+}
+.ctx-menu.show { display:block; }
+.ctx-menu button {
+  display:block; width:100%; padding:.7rem 1.2rem;
+  border:none; background:none; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:.9rem;
+  color:#e74c3c; border-radius:10px; text-align:left;
+  transition:background .15s;
+}
+.ctx-menu button:hover { background:rgba(231,76,60,.1); }
