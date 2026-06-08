@@ -575,18 +575,20 @@ document.getElementById('accountPill').addEventListener('click',(e)=>{
   accountDropdown.classList.toggle('show');
 });
 
-document.getElementById('switchAccount').addEventListener('click',async()=>{
+document.getElementById('switchAccount').addEventListener('click',async(e)=>{
+  e.stopPropagation();
   accountDropdown.classList.remove('show');
-  try{await guardarPaginaActual();}catch(e){}
+  try{await guardarPaginaActual();}catch(err){}
   await sb.auth.signOut();
   await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://nicolaz207.github.io/MiVida/'}});
 });
 
-document.getElementById('logoutBtn').addEventListener('click',async()=>{
+document.getElementById('logoutBtn').addEventListener('click',async(e)=>{
+  e.stopPropagation();
   accountDropdown.classList.remove('show');
-  try{await guardarPaginaActual();}catch(e){}
+  try{await guardarPaginaActual();}catch(err){}
   cerrarAlbum();currentUser=null;hojas=[];spreadActual=0;
-  try{await sb.auth.signOut();}catch(e){}
+  try{await sb.auth.signOut();}catch(err){}
 });
 
 // Album navigation
