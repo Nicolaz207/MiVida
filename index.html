@@ -133,7 +133,7 @@
     .album-user-pill:hover{background:rgba(255,255,255,.12);}
     .album-user-pill img{width:24px;height:24px;border-radius:50%;}
     .pill-arrow{font-size:.6rem;opacity:.5;margin-left:.2rem;}
-    .account-dropdown{position:absolute;top:calc(100% + 10px);right:0;background:#1a0a2e;border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);min-width:200px;overflow:hidden;display:none;z-index:500;}
+    .account-dropdown{position:fixed;top:calc(100% + 10px);right:0;background:#1a0a2e;border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);min-width:200px;overflow:hidden;display:none;z-index:9000;}
     .account-dropdown.show{display:block;animation:dropIn .2s ease both;}
     @keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
     .drop-btn{display:flex;align-items:center;gap:.7rem;width:100%;padding:.85rem 1.1rem;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;text-align:left;transition:background .15s;color:rgba(255,255,255,.8);}
@@ -594,7 +594,11 @@ document.getElementById('ctxDelete').addEventListener('click',async()=>{
 // Dropdown cuenta
 document.getElementById('accountPill').addEventListener('click',(e)=>{
   e.stopPropagation();
-  document.getElementById('accountDropdown').classList.toggle('show');
+  const dropdown=document.getElementById('accountDropdown');
+  const rect=e.currentTarget.getBoundingClientRect();
+  dropdown.style.top=(rect.bottom+8)+'px';
+  dropdown.style.right=(window.innerWidth-rect.right)+'px';
+  dropdown.classList.toggle('show');
 });
 
 document.getElementById('switchAccount').addEventListener('click',async(e)=>{
