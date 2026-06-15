@@ -128,17 +128,9 @@
     .viewer-badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);padding:.4rem .9rem;border-radius:999px;font-size:.78rem;font-family:'DM Sans',sans-serif;display:none;}
 
     /* CUENTA DROPDOWN */
-    .account-wrap{position:relative;}
-    .album-user-pill{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:.4rem 1rem;font-size:.82rem;color:rgba(255,255,255,.7);cursor:pointer;transition:background .2s;user-select:none;}
-    .album-user-pill:hover{background:rgba(255,255,255,.12);}
-    .album-user-pill img{width:24px;height:24px;border-radius:50%;}
-    .pill-arrow{font-size:.6rem;opacity:.5;margin-left:.2rem;}
-    .account-dropdown{position:fixed;background:#1a0a2e;border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.6);min-width:200px;overflow:hidden;display:none;z-index:9000;}
-    .account-dropdown.show{display:block;animation:dropIn .2s ease both;}
-    @keyframes dropIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-    .drop-btn{display:flex;align-items:center;gap:.7rem;width:100%;padding:.85rem 1.1rem;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;text-align:left;transition:background .15s;color:rgba(255,255,255,.8);}
-    .drop-btn:hover{background:rgba(255,255,255,.08);}
-    .drop-btn.drop-logout{color:#FF6B8A;border-top:1px solid rgba(255,255,255,.07);}
+    .btn-switch,.btn-logout{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s;}
+    .btn-switch:hover{background:rgba(0,229,255,.2);transform:scale(1.1);}
+    .btn-logout:hover{background:rgba(255,45,120,.2);transform:scale(1.1);}
 
     .book-wrapper{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:0 2rem 1rem;flex:1;width:100%;}
     .book{width:min(880px,96vw);perspective:2500px;}
@@ -300,17 +292,12 @@
     <h2 class="album-titulo">✦ Nuestro Álbum ✦</h2>
     <div class="album-header-right">
       <span class="viewer-badge" id="viewerBadge">👁 Solo lectura</span>
-      <div class="account-wrap">
-        <div class="album-user-pill" id="accountPill">
-          <img id="albumAvatar" src="" alt="" style="display:none"/>
-          <span id="albumUserName">...</span>
-          <span class="pill-arrow">▾</span>
-        </div>
-        <div class="account-dropdown" id="accountDropdown">
-          <button class="drop-btn" id="switchAccount">🔄 Cambiar de cuenta</button>
-          <button class="drop-btn drop-logout" id="logoutBtn">🚪 Cerrar sesión</button>
-        </div>
+      <div class="album-user-pill">
+        <img id="albumAvatar" src="" alt="" style="display:none"/>
+        <span id="albumUserName">...</span>
       </div>
+      <button class="btn-switch" id="switchAccount" title="Cambiar de cuenta">🔄</button>
+      <button class="btn-logout" id="logoutBtn" title="Cerrar sesión">🚪</button>
       <button class="album-add" id="albumAdd">+ Nueva hoja</button>
     </div>
   </div>
@@ -591,29 +578,15 @@ document.getElementById('ctxDelete').addEventListener('click',async()=>{
   try{await sb.from('album_pages').upsert({user_id:currentUser.id,page_index:idx,titulo:hojas[idx].titulo||'',texto:hojas[idx].texto||'',foto_url:'',foto_fecha:''},{onConflict:'user_id,page_index'});}catch(e){}
 });
 
-// Dropdown cuenta
-document.getElementById('accountPill').addEventListener('click',(e)=>{
-  e.stopPropagation();
-  const dropdown=document.getElementById('accountDropdown');
-  const rect=e.currentTarget.getBoundingClientRect();
-  dropdown.style.top=(rect.bottom+8)+'px';
-  dropdown.style.right=(window.innerWidth-rect.right)+'px';
-  dropdown.classList.toggle('show');
-});
-
-document.getElementById('switchAccount').addEventListener('mousedown',(e)=>{e.stopPropagation();});
-document.getElementById('switchAccount').addEventListener('click',async(e)=>{
-  e.stopPropagation();
-  document.getElementById('accountDropdown').classList.remove('show');
+// Cambiar cuenta
+document.getElementById('switchAccount').addEventListener('click',async()=>{
   try{await guardarPaginaActual();}catch(err){}
   await sb.auth.signOut();
   await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://nicolaz207.github.io/MiVida/'}});
 });
 
-document.getElementById('logoutBtn').addEventListener('mousedown',(e)=>{e.stopPropagation();});
-document.getElementById('logoutBtn').addEventListener('click',async(e)=>{
-  e.stopPropagation();
-  document.getElementById('accountDropdown').classList.remove('show');
+// Cerrar sesión
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
   try{await guardarPaginaActual();}catch(err){}
   cerrarAlbum();currentUser=null;hojas=[];spreadActual=0;esEditor=false;
   try{await sb.auth.signOut();}catch(err){}
@@ -621,9 +594,6 @@ document.getElementById('logoutBtn').addEventListener('click',async(e)=>{
 
 document.addEventListener('click',(e)=>{
   if(!document.getElementById('ctxMenu').contains(e.target))ocultarCtxMenu();
-  if(!document.getElementById('accountPill').contains(e.target)&&!document.getElementById('accountDropdown').contains(e.target)){
-    document.getElementById('accountDropdown').classList.remove('show');
-  }
 });
 
 // Album nav
